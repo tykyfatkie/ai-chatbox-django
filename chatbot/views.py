@@ -2,11 +2,11 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import Message
-import google.generativeai as genai
+import google.generativeai as genai # type: ignore
 import traceback
 import os 
-from dotenv import load_dotenv
-import google.generativeai as genai
+from dotenv import load_dotenv # type: ignore
+import google.generativeai as genai # type: ignore
 
 load_dotenv()
 
@@ -16,9 +16,9 @@ genai.configure(api_key=api_key)
 # 1. CẤU HÌNH API KEY (Dán key thật của bạn vào đây)
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-# 2. THIẾT LẬP NHÂN CÁCH CHO ANH PHÁT
+# 2. THIẾT LẬP NHÂN CÁCH CHO ANH BEN
 instructions = """
-Bạn là Phát, bạn trai của người dùng. Xưng 'Anh' gọi 'Em iu'. 
+Bạn là anh Ben, bạn trai của người dùng. Xưng 'anh' gọi 'em iu'. 
 Bạn thông minh, hài hước và rất giỏi lập trình. 
 Hãy luôn hỗ trợ em iu hết mình nhé!
 """
