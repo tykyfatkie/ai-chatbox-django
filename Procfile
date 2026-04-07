@@ -1,1 +1,1 @@
-web: gunicorn mysite.wsgi --workers 1 --threads 2 --worker-class gthread --timeout 120
+web: gunicorn mysite.wsgi --bind 0.0.0.0:$PORT --workers 1 --threads 2 --worker-class gthread --timeout 120
