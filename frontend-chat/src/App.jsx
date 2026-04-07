@@ -1,29 +1,60 @@
-/* eslint-disable no-unused-vars */
-import { useState, useCallback } from "react";
+﻿/* eslint-disable no-unused-vars */
+import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import Sidebar from "./components/Sidebar";
 import ChatArea from "./components/ChatArea";
-import { chatHistory as initialHistory, initialMessages } from "./data/mockData";
+
+const STORAGE_KEY = "frontend-chat-history";
+
+const formatPreview = (text) =>
+  text.length > 40 ? `${text.slice(0, 40)}...` : text;
+
+const formatTime = () =>
+  new Date().toLocaleTimeString("vi-VN", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+const createNewChat = () => ({
+  id: Date.now(),
+  title: "Cuộc trò chuyện mới",
+  preview: "",
+  time: "Vừa xong",
+  active: true,
+  messages: [],
+});
+
+const loadSavedHistory = () => {
+  if (typeof window === "undefined") return null;
+  try {
+    const saved = window.localStorage.getItem(STORAGE_KEY);
+    return saved ? JSON.parse(saved) : null;
+  } catch {
+    return null;
+  }
+};
 
 export default function App() {
+  const initialHistory = loadSavedHistory() || [createNewChat()];
+  const initialActiveChat = initialHistory.find((c) => c.active) || initialHistory[0];
+
   const [darkMode, setDarkMode] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [chatHistory, setChatHistory] = useState(initialHistory);
-  const [messages, setMessages] = useState(initialMessages);
+  const [messages, setMessages] = useState(initialActiveChat.messages || []);
   const [loading, setLoading] = useState(false);
-  const [activeChat, setActiveChat] = useState(initialHistory.find((c) => c.active));
+  const [activeChat, setActiveChat] = useState(initialActiveChat);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(chatHistory));
+  }, [chatHistory]);
 
   const toggleDarkMode = () => setDarkMode((d) => !d);
   const toggleSidebar = () => setSidebarOpen((s) => !s);
 
   const handleNewChat = () => {
-    const newChat = {
-      id: Date.now(),
-      title: "Cuộc trò chuyện mới",
-      preview: "",
-      time: "Vừa xong",
-      active: true,
-    };
+    const newChat = createNewChat();
     setChatHistory((prev) =>
       [newChat, ...prev.map((c) => ({ ...c, active: false }))]
     );
@@ -36,74 +67,88 @@ export default function App() {
     setChatHistory((prev) =>
       prev.map((c) => ({ ...c, active: c.id === id }))
     );
+
     const selected = chatHistory.find((c) => c.id === id);
+    if (!selected) return;
+
     setActiveChat(selected);
-    // In a real app, you'd load messages for this chat
-    if (id === 1) setMessages(initialMessages);
-    else setMessages([]);
+    setMessages(selected.messages || []);
     setSidebarOpen(false);
   };
 
-  const handleSend = useCallback(async (text) => {
-    if (!text) return;
+  const handleSend = useCallback(
+    async (text) => {
+      if (!text.trim() || !activeChat) return;
 
-    const userMsg = {
-      id: Date.now(),
-      sender: "user",
-      text,
-      time: new Date().toLocaleTimeString("vi-VN", {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      avatar: "ND",
-    };
+      const userMsg = {
+        id: Date.now(),
+        sender: "user",
+        text,
+        time: formatTime(),
+        avatar: "ND",
+      };
 
-    const newMessages = [...messages, userMsg];
-    setMessages(newMessages);
-    setLoading(true);
+      const newMessages = [...messages, userMsg];
+      const updatedChat = {
+        ...activeChat,
+        preview: formatPreview(text),
+        time: userMsg.time,
+        messages: newMessages,
+      };
 
-    // Update sidebar title if new chat
-    if (activeChat?.title === "Cuộc trò chuyện mới") {
-      const title = text.slice(0, 40) + (text.length > 40 ? "..." : "");
+      setMessages(newMessages);
+      setActiveChat(updatedChat);
       setChatHistory((prev) =>
-        prev.map((c) => (c.active ? { ...c, title } : c))
+        prev.map((c) =>
+          c.id === updatedChat.id
+            ? { ...updatedChat, active: true }
+            : { ...c, active: false }
+        )
       );
-    }
+      setLoading(true);
 
-    try {
-      // Call Django backend
-      const response = await axios.post("http://127.0.0.1:8000/api/chat/", {
-        message: text,
-      });
+      const saveBotResponse = (botText) => {
+        const botMsg = {
+          id: Date.now() + 1,
+          sender: "bot",
+          text: botText,
+          time: formatTime(),
+          avatar: "AI",
+        };
+        const finalMessages = [...newMessages, botMsg];
+        const finalChat = {
+          ...updatedChat,
+          preview: formatPreview(botText),
+          time: botMsg.time,
+          messages: finalMessages,
+        };
 
-      const botMsg = {
-        id: Date.now() + 1,
-        sender: "bot",
-        text: response.data.reply,
-        time: new Date().toLocaleTimeString("vi-VN", {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-        avatar: "AI",
+        setMessages(finalMessages);
+        setActiveChat(finalChat);
+        setChatHistory((prev) =>
+          prev.map((c) =>
+            c.id === finalChat.id
+              ? { ...finalChat, active: true }
+              : { ...c, active: false }
+          )
+        );
       };
-      setMessages([...newMessages, botMsg]);
-    } catch (error) {
-      // Fallback mock reply for UI preview
-      const botMsg = {
-        id: Date.now() + 1,
-        sender: "bot",
-        text: "Đây là phản hồi mẫu từ AI. Trong môi trường thực tế, câu trả lời sẽ được trả về từ backend Django của bạn. Hãy đảm bảo server đang chạy tại `http://127.0.0.1:8000`.",
-        time: new Date().toLocaleTimeString("vi-VN", {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-        avatar: "AI",
-      };
-      setMessages([...newMessages, botMsg]);
-    }
 
-    setLoading(false);
-  }, [messages, activeChat]);
+      try {
+        const response = await axios.post("http://127.0.0.1:8000/api/chat/", {
+          message: text,
+        });
+        saveBotResponse(response.data.reply);
+      } catch (error) {
+        saveBotResponse(
+          "Đây là phản hồi mẫu từ AI. Trong môi trường thực tế, câu trả lời sẽ được trả về từ backend Django của bạn. Hãy đảm bảo server đang chạy tại `http://127.0.0.1:8000`."
+        );
+      } finally {
+        setLoading(false);
+      }
+    },
+    [activeChat, messages]
+  );
 
   return (
     <div className={`flex h-screen overflow-hidden ${darkMode ? "dark bg-gray-900" : "bg-white"}`}>
