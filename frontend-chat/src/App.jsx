@@ -1,75 +1,132 @@
-import { useState } from 'react';
-import axios from 'axios';
+/* eslint-disable no-unused-vars */
+import { useState, useCallback } from "react";
+import axios from "axios";
+import Sidebar from "./components/Sidebar";
+import ChatArea from "./components/ChatArea";
+import { chatHistory as initialHistory, initialMessages } from "./data/mockData";
 
-function App() {
-  const [input, setInput] = useState('');
-  const [messages, setMessages] = useState([
-    { sender: 'bot', text: 'Xin chào! Tôi có thể giúp gì cho bạn hôm nay?' }
-  ]);
+export default function App() {
+  const [darkMode, setDarkMode] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [chatHistory, setChatHistory] = useState(initialHistory);
+  const [messages, setMessages] = useState(initialMessages);
   const [loading, setLoading] = useState(false);
+  const [activeChat, setActiveChat] = useState(initialHistory.find((c) => c.active));
 
-  const sendMessage = async () => {
-    if (!input.trim()) return;
+  const toggleDarkMode = () => setDarkMode((d) => !d);
+  const toggleSidebar = () => setSidebarOpen((s) => !s);
 
-    // Hiển thị tin nhắn của user ngay lập tức
-    const newMessages = [...messages, { sender: 'user', text: input }];
-    setMessages(newMessages);
-    setInput('');
-    setLoading(true);
-
-    try {
-      // Gọi xuống Backend Django
-      const response = await axios.post('http://127.0.0.1:8000/api/chat/', {
-        message: input
-      });
-      
-      // Nhận kết quả và hiển thị
-      setMessages([...newMessages, { sender: 'bot', text: response.data.reply }]);
-    } catch (error) {
-      console.error("Lỗi:", error);
-      setMessages([...newMessages, { sender: 'bot', text: 'Xin lỗi, hệ thống đang bận!' }]);
-    }
-    setLoading(false);
+  const handleNewChat = () => {
+    const newChat = {
+      id: Date.now(),
+      title: "Cuộc trò chuyện mới",
+      preview: "",
+      time: "Vừa xong",
+      active: true,
+    };
+    setChatHistory((prev) =>
+      [newChat, ...prev.map((c) => ({ ...c, active: false }))]
+    );
+    setActiveChat(newChat);
+    setMessages([]);
+    setSidebarOpen(false);
   };
 
+  const handleSelectChat = (id) => {
+    setChatHistory((prev) =>
+      prev.map((c) => ({ ...c, active: c.id === id }))
+    );
+    const selected = chatHistory.find((c) => c.id === id);
+    setActiveChat(selected);
+    // In a real app, you'd load messages for this chat
+    if (id === 1) setMessages(initialMessages);
+    else setMessages([]);
+    setSidebarOpen(false);
+  };
+
+  const handleSend = useCallback(async (text) => {
+    if (!text) return;
+
+    const userMsg = {
+      id: Date.now(),
+      sender: "user",
+      text,
+      time: new Date().toLocaleTimeString("vi-VN", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      avatar: "ND",
+    };
+
+    const newMessages = [...messages, userMsg];
+    setMessages(newMessages);
+    setLoading(true);
+
+    // Update sidebar title if new chat
+    if (activeChat?.title === "Cuộc trò chuyện mới") {
+      const title = text.slice(0, 40) + (text.length > 40 ? "..." : "");
+      setChatHistory((prev) =>
+        prev.map((c) => (c.active ? { ...c, title } : c))
+      );
+    }
+
+    try {
+      // Call Django backend
+      const response = await axios.post("http://127.0.0.1:8000/api/chat/", {
+        message: text,
+      });
+
+      const botMsg = {
+        id: Date.now() + 1,
+        sender: "bot",
+        text: response.data.reply,
+        time: new Date().toLocaleTimeString("vi-VN", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        avatar: "AI",
+      };
+      setMessages([...newMessages, botMsg]);
+    } catch (error) {
+      // Fallback mock reply for UI preview
+      const botMsg = {
+        id: Date.now() + 1,
+        sender: "bot",
+        text: "Đây là phản hồi mẫu từ AI. Trong môi trường thực tế, câu trả lời sẽ được trả về từ backend Django của bạn. Hãy đảm bảo server đang chạy tại `http://127.0.0.1:8000`.",
+        time: new Date().toLocaleTimeString("vi-VN", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        avatar: "AI",
+      };
+      setMessages([...newMessages, botMsg]);
+    }
+
+    setLoading(false);
+  }, [messages, activeChat]);
+
   return (
-    <div className="flex flex-col h-screen bg-gray-100 p-4">
-      <div className="flex-1 max-w-2xl w-full mx-auto bg-white rounded-lg shadow-md flex flex-col overflow-hidden">
-        
-        {/* Khung hiển thị tin nhắn */}
-        <div className="flex-1 p-4 overflow-y-auto">
-          {messages.map((msg, index) => (
-            <div key={index} className={`mb-4 flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`p-3 rounded-lg max-w-[70%] ${msg.sender === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'}`}>
-                {msg.text}
-              </div>
-            </div>
-          ))}
-          {loading && <div className="text-gray-500 italic">AI đang suy nghĩ...</div>}
-        </div>
+    <div className={`flex h-screen overflow-hidden ${darkMode ? "dark bg-gray-900" : "bg-white"}`}>
+      {/* Sidebar */}
+      <Sidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        chatHistory={chatHistory}
+        onNewChat={handleNewChat}
+        onSelectChat={handleSelectChat}
+        darkMode={darkMode}
+      />
 
-        {/* Khung nhập liệu */}
-        <div className="p-4 border-t flex gap-2">
-          <input 
-            type="text" 
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-            className="flex-1 p-2 border rounded outline-none focus:border-blue-500"
-            placeholder="Nhập câu hỏi của bạn..."
-          />
-          <button 
-            onClick={sendMessage} 
-            disabled={loading}
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-blue-300"
-          >
-            Gửi
-          </button>
-        </div>
-
-      </div>
+      {/* Main chat area */}
+      <ChatArea
+        messages={messages}
+        loading={loading}
+        onSend={handleSend}
+        darkMode={darkMode}
+        onToggleDark={toggleDarkMode}
+        onToggleSidebar={toggleSidebar}
+        activeChat={activeChat}
+      />
     </div>
   );
 }
-
-export default App;
