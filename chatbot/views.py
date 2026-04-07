@@ -5,7 +5,7 @@ from rest_framework.response import Response
 import google.generativeai as genai
 
 # CẤU HÌNH API KEY CỦA BẠN VÀO ĐÂY
-genai.configure(api_key="AIzaSyCAmo15BgeFL1uJT-JC6GhP3saY-589AW0")
+genai.configure(api_key="AIzaSyDOTIJNHkflxHYVA6LdVjcnu-AC-aLyGvo")
 model = genai.GenerativeModel('gemini-pro')
 
 @api_view(['POST'])

@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useState } from "react";
 import {
   Plus,
@@ -14,10 +15,12 @@ import {
 export default function Sidebar({
   isOpen,
   onClose,
-  chatHistory,
+  chatHistory = [], // Thêm default rỗng để tránh lỗi map
   onNewChat,
   onSelectChat,
   darkMode,
+  // Thêm prop userProfile để nhận dữ liệu động
+  userProfile = { name: "User", initials: "U", plan: "Free Plan" } 
 }) {
   const [hoveredChat, setHoveredChat] = useState(null);
 
@@ -154,18 +157,18 @@ export default function Sidebar({
           ))}
         </div>
 
-        {/* User Profile */}
+        {/* User Profile - Đã được làm động bằng props */}
         <div className={`border-t ${dividerColor} px-3 py-3`}>
           <div
             className={`flex items-center gap-2.5 px-2 py-2 rounded-xl cursor-pointer transition-colors ${hoverItem}`}
           >
             <div className="w-7 h-7 rounded-full bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-[11px] font-bold shrink-0">
-              ND
+              {userProfile.initials}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold truncate">Nguyễn Dũng</p>
+              <p className="text-xs font-semibold truncate">{userProfile.name}</p>
               <p className={`text-[11px] truncate ${darkMode ? "text-gray-500" : "text-gray-400"}`}>
-                Pro Plan
+                {userProfile.plan}
               </p>
             </div>
             <button className={`p-1 rounded transition-colors ${darkMode ? "hover:bg-gray-700 text-gray-400" : "hover:bg-gray-100 text-gray-400"}`}>
