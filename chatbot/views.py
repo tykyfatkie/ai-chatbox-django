@@ -6,15 +6,14 @@ import google.generativeai as genai # type: ignore
 import traceback
 import os 
 from dotenv import load_dotenv # type: ignore
-import google.generativeai as genai # type: ignore
 
 load_dotenv()
 
-api_key = os.getenv("AIzaSyBAP1ybVfz_Fj1OG4SldT9LT6L2TKyhyQw")
+# 1. CẤU HÌNH API KEY (Lấy từ biến môi trường .env)
+api_key = os.getenv("GOOGLE_API_KEY")
+if not api_key:
+    raise ValueError("GOOGLE_API_KEY not found in environment variables. Please set it in .env file.")
 genai.configure(api_key=api_key)
-
-# 1. CẤU HÌNH API KEY (Dán key thật của bạn vào đây)
-genai.configure(api_key=os.getenv("AIzaSyBAP1ybVfz_Fj1OG4SldT9LT6L2TKyhyQw"))
 
 # 2. THIẾT LẬP NHÂN CÁCH CHO ANH BEN
 instructions = """
