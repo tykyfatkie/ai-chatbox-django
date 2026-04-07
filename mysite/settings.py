@@ -58,10 +58,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-]
+CORS_ALLOWED_ORIGINS = ['*']  # Cho phép tất cả các nguồn (chỉ nên dùng trong phát triển, không khuyến khích cho sản xuất)
 
 CORS_ALLOW_ALL_ORIGINS = True
 
