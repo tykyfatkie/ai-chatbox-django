@@ -13,9 +13,11 @@ from google.genai import types
 load_dotenv()
 
 # 1. CẤU HÌNH API KEY (Nhớ khớp tên với Render Dashboard nhé)
-api_key = os.getenv("GOOGLE_API_KEY") # Đổi lại cho khớp với thiết lập trước đó
-if not api_key:
-    raise ValueError("GOOGLE_API_KEY not found in environment variables. Please set it in .env file.")
+api_key = os.getenv("GOOGLE_API_KEY") 
+if api_key:
+    print(f"---> [DEBUG] Đã tìm thấy Key: {api_key[:4]}...")
+else:
+    print("---> [DEBUG] CẢNH BÁO: Không tìm thấy GOOGLE_API_KEY trên Render!")
 
 # --- KHỞI TẠO CLIENT MỚI ---
 client = genai.Client(api_key=api_key)
