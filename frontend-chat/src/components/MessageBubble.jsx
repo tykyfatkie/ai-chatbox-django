@@ -156,8 +156,8 @@ export default function MessageBubble({ message, darkMode }) {
       {/* Avatar */}
       <div
         className={`
-          w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold
-          shrink-0 mt-0.5 shadow-sm
+          w-9 h-9 rounded-full flex items-center justify-center text-[10px] font-bold
+          shrink-0 mt-0.5 shadow-sm overflow-hidden
           ${isUser
             ? "bg-linear-to-br from-blue-500 to-indigo-600 text-white"
             : darkMode
@@ -167,9 +167,9 @@ export default function MessageBubble({ message, darkMode }) {
         `}
       >
         {isUser ? (
-          <span>{message.avatar}</span>
+          <img src="/avatar.jpg" alt="User" className="w-full h-full rounded-full object-cover" />
         ) : (
-          <Bot size={13} className={darkMode ? "text-blue-400" : "text-blue-600"} />
+          <img src="/ai.jpg" alt="AI" className="w-full h-full rounded-full object-cover" />
         )}
       </div>
 
