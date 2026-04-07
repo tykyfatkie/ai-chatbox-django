@@ -143,12 +143,12 @@ export default function Sidebar({
           {[
             { icon: HelpCircle, label: "Trợ giúp & FAQ" },
             { icon: Settings, label: "Cài đặt" },
-          ].map(({  label }) => (
+          ].map(({ icon: IconComponent, label }) => (
             <button
               key={label}
               className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs transition-colors duration-150 ${hoverItem}`}
             >
-              <Icon size={15} />
+              <IconComponent size={15} />
               {label}
             </button>
           ))}
