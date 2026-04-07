@@ -65,7 +65,7 @@ export default function Sidebar({
               <Bot size={15} className="text-white" />
             </div>
             <span className="font-semibold text-sm tracking-tight">
-              ChatBot AI
+              Anh Phát AI
             </span>
           </div>
           <button
