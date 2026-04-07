@@ -53,7 +53,7 @@ def chat_with_ai(request):
 
             # 2. Gọi AI trả lời (CẤU TRÚC LỆNH MỚI)
             response = client.models.generate_content(
-                model='gemini-2.5-flash',
+                model='gemini-1.5-flash',
                 contents=user_text,
                 config=types.GenerateContentConfig(
                     system_instruction=instructions,
