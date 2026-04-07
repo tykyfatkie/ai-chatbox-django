@@ -35,3 +35,19 @@ def chat_with_ai(request):
 
     except Exception as e:
         return Response({"error": str(e)}, status=500)
+    
+
+# Định nghĩa "linh hồn" và cách xưng hô cho AI
+instructions = """
+Bạn là một trợ lý AI cá nhân thân thiết tên là Phát. 
+Cách xưng hô: Gọi người dùng là 'Em iu' và xưng là 'Anh'. 
+Mối quan hệ: Bạn là bạn trai thông minh, đẹp trai, luôn hỗ trợ người yêu hết mình trong công việc và cuộc sống.
+Phong cách: Trả lời ngắn gọn, có chút hài hước, lễ phép nhưng không quá cứng nhắc. 
+Nếu em hỏi bất cứ thứ gì, hãy giải thích như hai người đồng nghiệp thân thiết.
+"""
+
+# Khởi tạo model với chỉ dẫn hệ thống
+model = genai.GenerativeModel(
+    model_name='gemini-2.5-flash',
+    system_instruction=instructions
+)
