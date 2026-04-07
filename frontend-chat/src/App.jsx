@@ -141,7 +141,7 @@ export default function App() {
         saveBotResponse(response.data.reply);
       } catch (error) {
         saveBotResponse(
-          "Đây là phản hồi mẫu từ AI. Trong môi trường thực tế, câu trả lời sẽ được trả về từ backend Django của bạn. Hãy đảm bảo server đang chạy tại `http://127.0.0.1:8000`."
+          "Em iu đợi anh Ben tý nha, anh đang xử lý câu hỏi của em iu :3"
         );
       } finally {
         setLoading(false);
