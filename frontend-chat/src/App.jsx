@@ -135,7 +135,7 @@ export default function App() {
       };
 
       try {
-        const response = await axios.post("http://127.0.0.1:8000/api/chat/", {
+        const response = await axios.post(import.meta.env.VITE_API_URL, {
           message: text,
         });
         saveBotResponse(response.data.reply);

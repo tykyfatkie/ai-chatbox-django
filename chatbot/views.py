@@ -4,9 +4,17 @@ from rest_framework.response import Response
 from .models import Message
 import google.generativeai as genai
 import traceback
+import os 
+from dotenv import load_dotenv
+import google.generativeai as genai
+
+load_dotenv()
+
+api_key = os.getenv("GEMINI_API_KEY")
+genai.configure(api_key=api_key)
 
 # 1. CẤU HÌNH API KEY (Dán key thật của bạn vào đây)
-genai.configure(api_key="AIzaSyDOTIJNHkflxHYVA6LdVjcnu-AC-aLyGvo")
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 # 2. THIẾT LẬP NHÂN CÁCH CHO ANH PHÁT
 instructions = """
