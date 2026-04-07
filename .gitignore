@@ -1,0 +1,5 @@
+# Môi trường và bí mật
+.env
+venv/
+__pycache__/
+db.sqlite3
