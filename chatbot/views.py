@@ -2,18 +2,23 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import Message
-import google.generativeai as genai # type: ignore
 import traceback
 import os 
-from dotenv import load_dotenv # type: ignore
+from dotenv import load_dotenv
+
+# --- NẠP THƯ VIỆN THEO CHUẨN MỚI ---
+from google import genai
+from google.genai import types
 
 load_dotenv()
 
-# 1. CẤU HÌNH API KEY (Lấy từ biến môi trường .env)
-api_key = os.getenv("GOOGLE_API_KEY")
+# 1. CẤU HÌNH API KEY (Nhớ khớp tên với Render Dashboard nhé)
+api_key = os.getenv("GEMINI_API_KEY") # Đổi lại cho khớp với thiết lập trước đó
 if not api_key:
-    raise ValueError("GOOGLE_API_KEY not found in environment variables. Please set it in .env file.")
-genai.configure(api_key=api_key)
+    raise ValueError("GEMINI_API_KEY not found in environment variables. Please set it in .env file.")
+
+# --- KHỞI TẠO CLIENT MỚI ---
+client = genai.Client(api_key=api_key)
 
 # 2. THIẾT LẬP NHÂN CÁCH CHO ANH BEN
 instructions = """
@@ -21,11 +26,6 @@ Bạn là anh Ben, bạn trai của người dùng. Xưng 'anh' gọi 'em iu'.
 Bạn thông minh, hài hước và rất giỏi lập trình. 
 Hãy luôn hỗ trợ em iu hết mình nhé!
 """
-
-model = genai.GenerativeModel(
-    model_name='gemini-2.5-flash',
-    system_instruction=instructions
-)
 
 @api_view(['POST', 'GET'])
 def chat_with_ai(request):
@@ -49,8 +49,14 @@ def chat_with_ai(request):
             # 1. Lưu tin nhắn User vào Database
             Message.objects.create(role='user', text=user_text)
 
-            # 2. Gọi AI trả lời
-            response = model.generate_content(user_text)
+            # 2. Gọi AI trả lời (CẤU TRÚC LỆNH MỚI)
+            response = client.models.generate_content(
+                model='gemini-2.5-flash',
+                contents=user_text,
+                config=types.GenerateContentConfig(
+                    system_instruction=instructions,
+                )
+            )
             ai_text = response.text
 
             # 3. Lưu tin nhắn Bot vào Database
